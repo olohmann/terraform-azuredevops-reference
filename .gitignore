@@ -1,6 +1,4 @@
-.helm
-.helm*
-.kube
+env.sh
 
 *.tfvars
 *.generated.*
