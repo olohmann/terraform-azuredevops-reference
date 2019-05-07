@@ -42,7 +42,7 @@ get_tf_variables() {
 }
 
 usage() {
-    echo "Usage: $0 [-e <environment_name>] [-i <tf_var_file>] [-v] [-f] [-h]" 1>&2
+    echo "Usage: $0 [-e <environment_name>] [-i <tf_var_file>] [-v] [-f] [-p] [-h]" 1>&2
     echo ""
     echo "Options"
     echo "-e <environment_name>    Defines an environment name that will be activated"
@@ -52,6 +52,7 @@ usage() {
     echo "                         contains terraform key value pairs.".
     echo "-v                       Validate: perform a terraform validation run."
     echo "-f                       Force: Defaults all interaction to yes."
+    echo "-p                       Print env."
     echo "-h                       Help: Print this dialog and exit."
     echo ""
     echo "You can provide terraform params via passing '__TF_' prefixed environment vars."
@@ -191,9 +192,10 @@ run_terraform() {
 e="default"
 i=""
 v=false
+p=false
 f=false
 
-while getopts ":e:i:vhf" o; do
+while getopts ":e:i:vhfp" o; do
     case "${o}" in
     e)
         e=${OPTARG}
@@ -206,6 +208,9 @@ while getopts ":e:i:vhf" o; do
         ;;
     v)
         v=true
+        ;;
+    p)
+        p=true
         ;;
     h)
         usage
@@ -233,6 +238,10 @@ else
     export ARM_CLIENT_SECRET="${servicePrincipalKey}"
     export ARM_SUBSCRIPTION_ID="$(az account list --all --query "[?isDefault].id | [0]" | tr -d '"')"
     export ARM_TENANT_ID="$(az account list --all --query "[?isDefault].tenantId | [0]" | tr -d '"')"
+fi
+
+if [ "${p}" = true ]; then
+    env
 fi
 
 VAR_FILE_PATH=$(get_abs_filename "${i}")
