@@ -101,15 +101,15 @@ ensure_terraform_backend() {
 
     if [ "${f}" = true ]; then
         if [ -z "${RT_VAR_FILE_PATH}" ]; then
-            eval $(printf "terraform plan -out=terraform.tfplan %s" "${RT_VARS}") && terraform apply terraform.tfplan
+            eval $(printf "terraform plan -input=false -out=terraform.tfplan %s" "${RT_VARS}") && terraform apply terraform.tfplan
         else
-            eval $(printf "terraform plan -out=terraform.tfplan -var-file %s %s" "${RT_VAR_FILE_PATH}" "${RT_VARS}") && terraform apply terraform.tfplan
+            eval $(printf "terraform plan -input=false -out=terraform.tfplan -var-file %s %s" "${RT_VAR_FILE_PATH}" "${RT_VARS}") && terraform apply terraform.tfplan
         fi
     else
         if [ -z "${RT_VAR_FILE_PATH}" ]; then
-            eval $(printf "terraform plan -out=terraform.tfplan %s" "${RT_VARS}")
+            eval $(printf "terraform plan -input=false -out=terraform.tfplan %s" "${RT_VARS}")
         else
-            eval $(printf "terraform plan -out=terraform.tfplan -var-file %s %s" "${RT_VAR_FILE_PATH}" "${RT_VARS}")
+            eval $(printf "terraform plan -input=false -out=terraform.tfplan -var-file %s %s" "${RT_VAR_FILE_PATH}" "${RT_VARS}")
         fi
 
         read -p "Continue with terraform apply (y/n)? " CONT
@@ -164,17 +164,17 @@ run_terraform() {
     if [ ${RT_VALIDATE_ONLY} = false ]; then
         if [ "${f}" = true ]; then
             if [ -z "${RT_VAR_FILE_PATH}" ]; then
-                eval $(printf "terraform plan -out=terraform.tfplan %s" "${RT_VARS}") \
+                eval $(printf "terraform plan -input=false -out=terraform.tfplan %s" "${RT_VARS}") \
                     && terraform apply terraform.tfplan
             else
-                eval $(printf "terraform plan -out=terraform.tfplan -var-file %s %s" "${RT_VAR_FILE_PATH}" "${RT_VARS}") \
+                eval $(printf "terraform plan -input=false -out=terraform.tfplan -var-file %s %s" "${RT_VAR_FILE_PATH}" "${RT_VARS}") \
                     && terraform apply terraform.tfplan
             fi
         else
             if [ -z "${RT_VAR_FILE_PATH}" ]; then
-                eval $(printf "terraform plan -out=terraform.tfplan %s" "${RT_VARS}")
+                eval $(printf "terraform plan -input=false -out=terraform.tfplan %s" "${RT_VARS}")
             else
-                eval $(printf "terraform plan -out=terraform.tfplan -var-file %s %s" "${RT_VAR_FILE_PATH}" "${RT_VARS}")
+                eval $(printf "terraform plan -input=false -out=terraform.tfplan -var-file %s %s" "${RT_VAR_FILE_PATH}" "${RT_VARS}")
             fi
 
             read -p "Continue with terraform apply (y/n)? " CONT
