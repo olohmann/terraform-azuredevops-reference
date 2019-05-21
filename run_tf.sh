@@ -38,7 +38,12 @@ get_abs_filename() {
 get_tf_variables() {
     # Get env variables starting with __TF_, remote the __TF_ prefix and
     # automatically create a -var key=value options list.
-    echo -n $(python -c 'import os; import sys; sys.stdout.write(" ".join(map(lambda x: "-var \"{key}={value}\"".format(key=x[5:].lower(),value=os.environ[x]), list(filter(lambda x: x.startswith("__TF_"), os.environ.keys())))))') 
+    echo -n $(python -c 'import os; import sys; sys.stdout.write(" ".join(map(lambda x: "-var \"{key}={value}\"".format(key=x[5:].lower(),value=os.environ[x]), list(filter(lambda x: x.startswith("__TF_"), os.environ.keys())))))')
+}
+
+set_tf_output() {
+    # Transform terraform outputs to environment vars with __TF_ prefix, that will be transferred to dependant sub-deployments.
+    eval $(terraform output -json | python -c 'import sys, json; tf_output = json.load(sys.stdin); sys.stdout.write(";".join(map(lambda key: "export __TF_{key}=\"{value}\"".format(key=key, value=tf_output[key]["value"]), tf_output.keys())))')
 }
 
 usage() {
@@ -131,8 +136,8 @@ run_terraform() {
     pushd $DIR
     cd $(echo -n "${DIR}/${RT_MODULE}")
 
-    # Clean existing state file that links to a backend. This is idempotent and will 
-    # be re-created. This, however, avoids problems if you deployments from a single 
+    # Clean existing state file that links to a backend. This is idempotent and will
+    # be re-created. This, however, avoids problems if you deployments from a single
     # source with different prefixes.
     rm -f .terraform/terraform.tfstate
 
@@ -179,13 +184,15 @@ run_terraform() {
                 exit 1
             fi
         fi
-    else    
+    else
         if [ -z "${RT_VAR_FILE_PATH}" ]; then
             eval $(printf "terraform validate %s" "${RT_VARS}")
         else
             eval $(printf "terraform validate -var-file %s %s" "${RT_VAR_FILE_PATH}" "${RT_VARS}")
         fi
     fi
+
+    set_tf_output
     popd
 }
 
@@ -227,7 +234,7 @@ if [ -z "${e}" ]; then
 fi
 
 .log 6 "[==== Check Required Tools ====]"
-$DIR/check_tools.sh
+bash $DIR/check_tools.sh
 
 servicePrincipalId=${servicePrincipalId:=""}
 if [ -z "${servicePrincipalId}" ]; then
