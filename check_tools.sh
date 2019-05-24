@@ -1,6 +1,4 @@
 #!/usr/bin/env bash
-TF_SCRIPT_VERSION=0.3.0
-
 set -o errexit
 set -o nounset
 set -o pipefail

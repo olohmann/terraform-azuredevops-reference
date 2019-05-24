@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-TF_SCRIPT_VERSION=0.3.0
+TF_SCRIPT_VERSION=0.4.0
 
 set -o errexit
 set -o nounset
@@ -42,8 +42,13 @@ get_tf_variables() {
     echo -n $(python -c 'import os; import sys; sys.stdout.write(" ".join(map(lambda x: "-var \"{key}={value}\"".format(key=x[5:].lower(),value=os.environ[x]), list(filter(lambda x: x.startswith("__TF_"), os.environ.keys())))))')
 }
 
+set_tf_output() {
+    # Transform terraform outputs to environment vars with __TF_ prefix, that will be transferred to dependant sub-deployments.
+    eval $(terraform output -json | python -c 'import sys, json; tf_output = json.load(sys.stdin); sys.stdout.write(";".join(map(lambda key: "export __TF_{key}=\"{value}\"".format(key=key, value=tf_output[key]["value"]), tf_output.keys())))')
+}
+
 usage() {
-    echo "Usage: $0 [-e <environment_name>] [-i <tf_var_file>] [-v] [-f] [-h]" 1>&2
+    echo "Usage: $0 [-e <environment_name>] [-i <tf_var_file>] [-v] [-f] [-p] [-h]" 1>&2
     echo "Version: ${RUN_TF_VERSION}"
     echo ""
     echo "Options"
@@ -54,7 +59,7 @@ usage() {
     echo "                         contains terraform key value pairs.".
     echo "-v                       Validate: perform a terraform validation run."
     echo "-f                       Force: Defaults all interaction to yes."
-    echo "-p                       Dump env."
+    echo "-p                       Print env."
     echo "-h                       Help: Print this dialog and exit."
     echo ""
     echo "You can provide terraform params via passing '__TF_' prefixed environment vars."
@@ -182,14 +187,15 @@ run_terraform() {
             eval $(printf "terraform validate -var-file %s %s" "${RT_VAR_FILE_PATH}" "${RT_VARS}")
         fi
     fi
+    set_tf_output
     popd
 }
 
 e="default"
 i=""
 v=false
-f=false
 p=false
+f=false
 
 while getopts ":e:i:vhfp" o; do
     case "${o}" in
@@ -248,5 +254,8 @@ ensure_terraform_backend "00-tf-backend" "${VAR_FILE_PATH}"
 
 .log 6 "[==== 01 Sample ====]"
 run_terraform ${v} ${e} "01-sample" "${VAR_FILE_PATH}"
+
+.log 6 "[==== 02 Sample Post Deploy ====]"
+run_terraform ${v} ${e} "02-sample-post-deploy" "${VAR_FILE_PATH}"
 
 .log 6 "[==== Done. ====]"
