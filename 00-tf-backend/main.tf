@@ -1,6 +1,7 @@
 locals {
   prefix_snake = "${lower("${var.prefix}")}"
-  ip_rules     = "${length(var.tf_backend_network_access_rules) > 0 ? join(",", var.tf_backend_network_access_rules) : chomp(data.http.myip.body)}"
+  ip_rules     = "${length(var.tf_backend_network_access_rules) > 0 ? (var.tf_backend_add_current_client_ip_automatically == "true" ? join(",", var.tf_backend_network_access_rules, list(chomp(data.http.myip.body))) : join(",", var.tf_backend_network_access_rules)) : chomp(data.http.myip.body)}"
+
   hash_suffix  = "${lower(substr(sha256(azurerm_resource_group.rg.id), 0, 6))}"
 
   resource_group_name    = "${var.tf_backend_resource_group_name != "" ? var.tf_backend_resource_group_name : "${local.prefix_snake}-shared-tf-state-rg"}"

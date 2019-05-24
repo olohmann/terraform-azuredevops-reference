@@ -8,11 +8,16 @@ variable "location" {
   description = "The Azure region in which all resources in this example should be provisioned."
 }
 
-# Default, all public IP ranges. Trim as fit.
 variable "tf_backend_network_access_rules" {
   type        = "list"
   description = "Defines the network level access rules for, e.g. the storage account. Format list of IP addresses and/or IP ranges. If nothing is defined, your current IP address will be added."
   default     = []
+}
+
+variable "tf_backend_add_current_client_ip_automatically" {
+  type = "string"
+  description = "Defines if the current client IP address (client that executes terraform) is automatically added to the trusted IP address range of the storage. If not, you need to make sure that the custom range allows the terraform client to actually reach the storage account."
+  default = "true"
 }
 
 variable "tf_backend_location" {
