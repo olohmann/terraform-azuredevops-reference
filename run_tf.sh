@@ -395,7 +395,7 @@ fi
 TF_VERSION=$(echo -n $(${TERRAFORM_PATH} version) | head -1 | cut -d'v' -f2)
 TF_VER_COMP=$(vercomp $TF_MIN_VERSION $TF_VERSION)
 if [[ ${TF_VER_COMP} == "<" ]]; then 
-    .log 2 "Minimum terraform version required: ${TF_MIN_VERSION}"
+    .log 2 "Minimum terraform version required: ${TF_MIN_VERSION} (found: ${TF_VERSION})"
     exit 1
 else
     .log 6 "Found terraform ${TF_VERSION} (minimum: ${TF_MIN_VERSION})"
