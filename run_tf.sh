@@ -283,7 +283,7 @@ function run_terraform() {
     rm -f .terraform/terraform.tfstate
 
     # Init with Backend config.
-    eval $(printf "${TERRAFORM_PATH} init %s" "${BACKEND_CONFIG}")
+    eval $(printf "${TERRAFORM_PATH} init %s -no-color" "${BACKEND_CONFIG}")
 
     TF_WORKSPACE=$(${TERRAFORM_PATH} workspace show)
     .log 6 "Current Workspace: ${TF_WORKSPACE}"
@@ -303,20 +303,20 @@ function run_terraform() {
     fi
 
     if [ ${RT_VALIDATE_ONLY} = false ]; then
-        ${TERRAFORM_PATH} plan -input=false -out=terraform.tfplan
+        ${TERRAFORM_PATH} plan -no-color -input=false -out=terraform.tfplan
 
         if [ "${f}" = true ]; then
-            ${TERRAFORM_PATH} apply terraform.tfplan
+            ${TERRAFORM_PATH} apply -no-color terraform.tfplan
         else
             read -p "Continue with terraform apply (y/n)? " CONT
             if [ "$CONT" = "y" ]; then
-                ${TERRAFORM_PATH} apply terraform.tfplan
+                ${TERRAFORM_PATH} apply -no-color terraform.tfplan
             else
                 exit 1
             fi
         fi
     else
-        ${TERRAFORM_PATH} validate
+        ${TERRAFORM_PATH} validate -no-color
     fi
     set_tf_output
     popd
