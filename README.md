@@ -1,6 +1,6 @@
 # Opinionated Terraform Template for Azure
 
-This is an end-to-end sample of an opinionated Terraform wrapper that eases integration with Azure DevOps pipelines. The basic idea is that you can use the `run_tf.sh` script with its `check_tools.sh` companion script to execute terraform deployments in simple Azure DevOps tasks.
+This is an end-to-end sample of an opinionated Terraform wrapper that eases integration with Azure DevOps pipelines. The basic idea is that you can use the `run_tf.sh` to execute terraform deployments in simple Azure DevOps tasks.
 
 ## Structure
 
@@ -9,7 +9,6 @@ This is an end-to-end sample of an opinionated Terraform wrapper that eases inte
 |-02-sample-post-deploy An example terraform deployment, that takes a dependency on 01-sample.
 .editorconfig           See https://editorconfig.org/
 CHANGELOG.md            Tracking the changelog.
-check_tools.sh          A helper script used to verify local tooling requirements (e.g. jq, az, python)
 LICENSE                 License information on this project.
 README.md               This README.
 run_tf.sh               A terraform wrapper script that simplifies integration with Azure DevOps.
