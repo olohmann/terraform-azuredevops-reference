@@ -202,7 +202,7 @@ function ensure_terraform_backend() {
       --output none
     
     local RT_RG_ID=$(az group show -n ${RT_BACKEND_RESOURCE_GROUP_NAME} -o json | jq -r '.id' | tr -d '\n')
-    local RT_HASH_SUFFIX_FULL=$(echo -n "${RT_RG_ID}" | openssl dgst -sha256 | tr -d '\n')
+    local RT_HASH_SUFFIX_FULL=$(echo -n "${RT_RG_ID}" | openssl dgst -sha256 | sed 's/^.* //' | tr -d '\n')
     local RT_HASH_SUFFIX=${RT_HASH_SUFFIX_FULL:0:6}
 
     local RT_BACKEND_STORAGE_ACC_NAME=$([ -z "${__TF_backend_storage_account_name}" ] && echo "${RT_PREFIX}${RT_HASH_SUFFIX}" || echo "${__TF_backend_storage_account_name}")
