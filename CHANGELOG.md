@@ -13,8 +13,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+## [1.0.1] - 2019-06-11
+
+### Added
+
+### Removed
+
+### Changed
+
 - More verbose error messages.
 - Fixed openssl dgst output (remove '(stdin)' prefix).
+- Added `-no-color` to all terraform outputs
 
 ## [1.0.0] - 2019-06-10
 
