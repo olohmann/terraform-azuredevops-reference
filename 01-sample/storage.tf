@@ -12,6 +12,6 @@ resource "azurerm_storage_account" "sa" {
   access_tier  = "Hot"
 
   network_rules {
-    ip_rules = ["${local.ip_rules_list}"]
+    ip_rules = "${local.ip_rules_list}"
   }
 }

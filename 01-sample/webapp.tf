@@ -34,7 +34,7 @@ resource "azurerm_app_service" "app" {
     always_on         = "true"
   }
 
-  app_settings {
+  app_settings = {
     "APPINSIGHTS_INSTRUMENTATIONKEY" = "${azurerm_application_insights.app_insights.instrumentation_key}"
   }
 
