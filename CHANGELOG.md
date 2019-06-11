@@ -13,6 +13,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+----------------
+
+## [1.0.2] - 2019-06-11
+
+### Added
+
+### Removed
+
+### Changed
+
+- Updated `az` client storage container creation to new API (`auth-mode key`).
+
 ## [1.0.1] - 2019-06-11
 
 ### Added

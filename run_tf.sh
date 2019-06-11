@@ -4,7 +4,7 @@ set -o nounset
 set -o pipefail
 
 # Script Versioning
-TF_SCRIPT_VERSION=1.0.1
+TF_SCRIPT_VERSION=1.0.2
 
 # Minimal Terraform Version for compatibility.
 TF_MIN_VERSION=0.12.1
@@ -37,7 +37,7 @@ function .log() {
 
 __VERBOSE=${__VERBOSE:=6}
 
-# vercomp() Attribution: Dennis Williamson, 
+# vercomp() Attribution: Dennis Williamson,
 # https://stackoverflow.com/questions/4023830/how-to-compare-two-strings-in-dot-separated-version-format-in-bash
 function vercomp() {
     if [[ $1 == $2 ]]
@@ -79,7 +79,7 @@ function vercomp() {
 function check_tools() {
     local tools=("$@")
     local errors_count=0
-    for cmd in "${tools[@]}"  
+    for cmd in "${tools[@]}"
     do
         if ! [[ -x "$(command -v ${cmd})" ]]; then
             .log 3 "${cmd} is required and was not found in PATH."
@@ -112,7 +112,7 @@ function get_terraform() {
 
     local terraform_download_url="https://releases.hashicorp.com/terraform/${TF_MIN_VERSION}/terraform_${TF_MIN_VERSION}_${os_version}_amd64.zip"
     local tmp_dir=$(mktemp -d)
-    wget -q -O ${tmp_dir}/terraform.zip ${terraform_download_url} 
+    wget -q -O ${tmp_dir}/terraform.zip ${terraform_download_url}
     unzip -qq ${tmp_dir}/terraform.zip -d ${tmp_dir}
     echo -n "${tmp_dir}/terraform"
 }
@@ -200,7 +200,7 @@ function ensure_terraform_backend() {
       --name "${RT_BACKEND_RESOURCE_GROUP_NAME}" \
       --location "${RT_BACKEND_RESOURCE_GROUP_LOCATION}" \
       --output none
-    
+
     local RT_RG_ID=$(az group show -n ${RT_BACKEND_RESOURCE_GROUP_NAME} -o json | jq -r '.id' | tr -d '\n')
     local RT_HASH_SUFFIX_FULL=$(echo -n "${RT_RG_ID}" | openssl dgst -sha256 | sed 's/^.* //' | tr -d '\n')
     local RT_HASH_SUFFIX=${RT_HASH_SUFFIX_FULL:0:6}
@@ -236,7 +236,7 @@ function ensure_terraform_backend() {
          --ip-address "${entry}" \
          --output none
     done <<< "${RT_EXISTING_NETWORK_RULES}"
-    
+
     az storage account network-rule add \
       --resource-group "${RT_BACKEND_RESOURCE_GROUP_NAME}" \
       --account-name "${RT_BACKEND_STORAGE_ACC_NAME}" \
@@ -261,6 +261,7 @@ function ensure_terraform_backend() {
       --account-key "${RT_BACKEND_ACCESS_KEY}" \
       --name "${RT_BACKEND_STORAGE_ACC_CONTAINER_NAME}" \
       --public-access "off" \
+      --auth-mode key \
       --output none
 
     # Set Global variable
@@ -394,7 +395,7 @@ fi
 
 TF_VERSION=$(echo -n $(${TERRAFORM_PATH} version) | head -1 | cut -d'v' -f2)
 TF_VER_COMP=$(vercomp $TF_MIN_VERSION $TF_VERSION)
-if [[ ${TF_VER_COMP} == "<" ]]; then 
+if [[ ${TF_VER_COMP} == "<" ]]; then
     .log 2 "Minimum terraform version required: ${TF_MIN_VERSION} (found: ${TF_VERSION})"
     exit 1
 else
