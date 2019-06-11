@@ -31,9 +31,9 @@ Options
 -d                       Download minimal version of terraform client.
 -h                       Help: Print this dialog and exit.
 
-You can provide terraform params via passing 'TF_' prefixed environment vars.
+You can provide terraform params via passing 'TF_VAR_' prefixed environment vars.
 For example:
-export TF_location="northeurope"
+export TF_VAR_location="northeurope"
 Will pass an according variable to all terraform invocations.
 ```
 
@@ -78,11 +78,11 @@ steps:
 
 > **Please note**: It is important to use the Azure CLI task *and* selecting to pass the SPN details in the actual task (`addSpnToEnvironment: true`). This allows the `run_tf.sh` script to automatically detect that it is being used in combination with a service principal in an Azure CLI pipeline task.
 
-In addition, you can add as many `TF_`-prefixed variables as required to pass parameters to the terraform deployment. To override the location value, for example, you can pass a `TF_location` variable:
+In addition, you can add as many `TF_VAR_`-prefixed variables as required to pass parameters to the terraform deployment. To override the location value, for example, you can pass a `TF_VAR_location` variable:
 
 ```yaml
 variables:
-  TF_location: 'North Europe'
+  TF_VAR_location: 'North Europe'
 ```
 
 ### Release Pipeline

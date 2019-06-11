@@ -4,7 +4,7 @@ set -o nounset
 set -o pipefail
 
 # Script Versioning
-TF_SCRIPT_VERSION=1.0.3
+TF_SCRIPT_VERSION=1.0.4
 
 # Minimal Terraform Version for compatibility.
 TF_MIN_VERSION=0.12.1
@@ -128,7 +128,7 @@ function get_abs_filename() {
 
 function set_tf_output() {
     # Transform terraform outputs to environment vars with __TF_ prefix, that will be transferred to dependant sub-deployments.
-    eval $(${TERRAFORM_PATH} output -json | python -c 'import sys, json; tf_output = json.load(sys.stdin); sys.stdout.write(";".join(map(lambda key: "export TF_{key}=\"{value}\"".format(key=key, value=tf_output[key]["value"]), tf_output.keys())))')
+    eval $(${TERRAFORM_PATH} output -json | python -c 'import sys, json; tf_output = json.load(sys.stdin); sys.stdout.write(";".join(map(lambda key: "export TF_VAR_{key}=\"{value}\"".format(key=key, value=tf_output[key]["value"]), tf_output.keys())))')
 }
 
 function usage() {
@@ -146,9 +146,9 @@ function usage() {
     echo "-h                       Help: Print this dialog and exit."
     echo ""
     echo "Passing Terraform Variables:"
-    echo "You can provide terraform params via passing 'TF_' prefixed environment vars."
+    echo "You can provide terraform params via passing 'TF_VAR_' prefixed environment vars."
     echo "Example:"
-    echo "export TF_location=northeurope"
+    echo "export TF_VAR_location=northeurope"
     echo "Will pass according variable to all terraform invocations."
     echo ""
     echo "Customize Terraform Backend configuration:"
@@ -185,9 +185,9 @@ function ensure_subription_context() {
 BACKEND_CONFIG=""
 UNSET_BACKEND_DEPLOY_IP=""
 function ensure_terraform_backend() {
-    local RT_PREFIX=${TF_prefix:="contoso"}
-    local RT_LOCATION=${TF_location:="westeurope"}
-
+    local RT_PREFIX=${TF_VAR_prefix:="contoso"}
+    local RT_LOCATION=${TF_VAR_location:="westeurope"}
+    local KEEP_CURRENT_IP=false
     # Initialize potential env vars.
     __TF_backend_resource_group_name=${__TF_backend_resource_group_name:=""}
     __TF_backend_location=${__TF_backend_location:=""}
@@ -245,14 +245,16 @@ function ensure_terraform_backend() {
 
     local RT_NEW_NETWORK_RULES=$(echo -n "${RT_BACKEND_STORAGE_ACC_NETWORK_RULES}" | tr ',' '\n')
     while read -r entry; do
-        # Filter empty entries
-        if [[ $entry =~ "[0-9]+" ]]; then
-            .log 6 "Network Rules - Whitelisting ${entry}"
+        .log 6 "Adding FW exception for ${entry}"
+        if [[ "$entry" == "${CURRENT_IP}" ]]; then
+            .log 4 "Skipping ${CURRENT_IP} (already configured)"
+            KEEP_CURRENT_IP=true
+        else 
             az storage account network-rule add \
-            --resource-group "${RT_BACKEND_RESOURCE_GROUP_NAME}" \
-            --account-name "${RT_BACKEND_STORAGE_ACC_NAME}" \
-            --ip-address "${entry}" \
-            --output none
+                --resource-group "${RT_BACKEND_RESOURCE_GROUP_NAME}" \
+                --account-name "${RT_BACKEND_STORAGE_ACC_NAME}" \
+                --ip-address "${entry}" \
+                --output none
         fi
     done <<< "${RT_NEW_NETWORK_RULES}"
 
@@ -266,7 +268,11 @@ function ensure_terraform_backend() {
 
     # Set Global variable
     BACKEND_CONFIG="-backend-config 'resource_group_name=${RT_BACKEND_RESOURCE_GROUP_NAME}' -backend-config 'storage_account_name=${RT_BACKEND_STORAGE_ACC_NAME}' -backend-config 'container_name=${RT_BACKEND_STORAGE_ACC_CONTAINER_NAME}' -backend-config 'access_key=${RT_BACKEND_ACCESS_KEY}'"
-    UNSET_BACKEND_DEPLOY_IP="az storage account network-rule remove --resource-group ${RT_BACKEND_RESOURCE_GROUP_NAME} --account-name ${RT_BACKEND_STORAGE_ACC_NAME} --ip-address ${CURRENT_IP} --output none"
+    if [[ $KEEP_CURRENT_IP = true ]]; then
+        UNSET_BACKEND_DEPLOY_IP="echo 'Skipping removal of backend IP'"
+    else
+        UNSET_BACKEND_DEPLOY_IP="az storage account network-rule remove --resource-group ${RT_BACKEND_RESOURCE_GROUP_NAME} --account-name ${RT_BACKEND_STORAGE_ACC_NAME} --ip-address ${CURRENT_IP} --output none"
+    fi
 }
 
 function run_terraform() {
