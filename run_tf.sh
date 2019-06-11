@@ -4,7 +4,7 @@ set -o nounset
 set -o pipefail
 
 # Script Versioning
-TF_SCRIPT_VERSION=1.0.2
+TF_SCRIPT_VERSION=1.0.3
 
 # Minimal Terraform Version for compatibility.
 TF_MIN_VERSION=0.12.1
@@ -243,7 +243,7 @@ function ensure_terraform_backend() {
       --ip-address "${CURRENT_IP}" \
       --output none
 
-    local RT_NEW_NETWORK_RULES=$(echo -n "${RT_BACKEND_STORAGE_ACC_NETWORK_RULES} | tr ',' '\n'")
+    local RT_NEW_NETWORK_RULES=$(echo -n "${RT_BACKEND_STORAGE_ACC_NETWORK_RULES}" | tr ',' '\n')
     while read -r entry; do
         # Filter empty entries
         if [[ $entry =~ "[0-9]+" ]]; then
