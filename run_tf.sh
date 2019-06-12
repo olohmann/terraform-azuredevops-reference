@@ -102,6 +102,11 @@ function get_os() {
     echo ${machine}
 }
 
+function fix_tf_var_az_devops_env_vars() {
+    .log 6 "Fixing AzureDevOps Environment Variable Capitialization"
+    $(python -c 'import os;import sys;sys.stdout.write(";".join(map(lambda x: "export TF_VAR_{key}={value}".format(key=x[7:].lower(),value=os.environ[x]), list(filter(lambda x: x.startswith("TF_VAR_"), os.environ.keys())))))')
+}
+
 function get_terraform() {
     .log 6 "Downloading terraform client (v${TF_MIN_VERSION})..."
     local os_version=$(get_os)
@@ -371,6 +376,8 @@ shift $((OPTIND - 1))
 if [ -z "${e}" ]; then
     usage
 fi
+
+fix_tf_var_az_devops_env_vars
 
 .log 6 "[==== Check Required Tools ====]"
 check_tools "${REQUIRED_TOOLS[@]}"
