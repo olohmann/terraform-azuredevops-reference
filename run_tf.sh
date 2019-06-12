@@ -104,8 +104,8 @@ function get_os() {
 
 function fix_tf_var_az_devops_env_vars() {
     .log 6 "Fixing AzureDevOps Environment Variable Capitialization"
-    $(python -c 'import os;import sys;sys.stdout.write(";".join(map(lambda x: "export TF_VAR_{key}={value}".format(key=x[7:].lower(),value=os.environ[x]), list(filter(lambda x: x.startswith("TF_VAR_"), os.environ.keys())))))')
-    $(python -c 'import os;import sys;sys.stdout.write(";".join(map(lambda x: "export __TF_{key}={value}".format(key=x[5:].lower(),value=os.environ[x]), list(filter(lambda x: x.startswith("__TF_"), os.environ.keys())))))')
+    eval $(python -c 'import os;import sys;sys.stdout.write("\n".join(map(lambda x: "export TF_VAR_{key}={value}".format(key=x[7:].lower(),value=os.environ[x]), list(filter(lambda x: x.startswith("TF_VAR_"), os.environ.keys())))))')
+    eval $(python -c 'import os;import sys;sys.stdout.write("\n".join(map(lambda x: "export __TF_{key}={value}".format(key=x[5:].lower(),value=os.environ[x]), list(filter(lambda x: x.startswith("__TF_"), os.environ.keys())))))')
 }
 
 function get_terraform() {
