@@ -13,10 +13,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+----------------
+## [1.0.5] - 2019-06-12
+
+### Added
+
+### Removed
+
+### Changed
+
 - Updates to terraform sample deployment.
 - Fixed AzureDevops Environment Variable Capitalization Issue
 
-----------------
 ## [1.0.4] - 2019-06-11
 
 ### Added
