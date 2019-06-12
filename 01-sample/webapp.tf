@@ -3,6 +3,7 @@ resource "azurerm_app_service_plan" "sp" {
   resource_group_name = "${azurerm_resource_group.rg.name}"
   location            = "${azurerm_resource_group.rg.location}"
 
+  // TODO: Variables
   sku {
     tier = "Standard"
     size = "S1"

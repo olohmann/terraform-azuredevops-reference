@@ -25,12 +25,14 @@ locals {
   ip_rules_list = "${compact(split(",", local.ip_rules))}"
   ip_rules_pairs     = "${length(var.ip_rules_pairs) > 0 ? join(",", var.ip_rules_pairs) : "${chomp(data.http.myip.body)},${chomp(data.http.myip.body)}"}"
   ip_rules_pairs_list = "${compact(split(",", local.ip_rules_pairs))}"
+
+  resource_group_name = "${var.resource_group_name != "" ? var.resource_group_name : "${local.prefix_snake}-rg"}"
 }
 data "http" "myip" {
   url = "https://api.ipify.org/"
 }
 
 resource "azurerm_resource_group" "rg" {
-  name     = "${local.prefix_snake}-sample-rg"
+  name     = "${var.resource_group_name}"
   location = "${var.location}"
 }

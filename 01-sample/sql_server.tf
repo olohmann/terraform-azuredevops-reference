@@ -6,6 +6,7 @@ resource "random_string" "password" {
   min_numeric = "2"
 }
 
+// TODO: Sizing as variable
 resource "azurerm_sql_server" "sql_server" {
   name                         = "${local.prefix_snake}-${local.hash_suffix}"
   resource_group_name          = "${azurerm_resource_group.rg.name}"
@@ -15,6 +16,7 @@ resource "azurerm_sql_server" "sql_server" {
   administrator_login_password = "${random_string.password.result}"
 }
 
+// TODO: AAD Login
 resource "azurerm_sql_database" "sql_db" {
   name                = "db"
   resource_group_name = "${azurerm_resource_group.rg.name}"
@@ -31,6 +33,7 @@ resource "azurerm_sql_firewall_rule" "sql_firewall_ip_rule" {
   end_ip_address      = "${element(local.ip_rules_pairs_list, count.index * 2 + 1)}"
 }
 
+// TODO: Use provided firewall rules
 /* Azure Service Access: Convention 0.0.0.0/0.0.0.0 */
 resource "azurerm_sql_firewall_rule" "sql_firewall" {
   name                = "firewall-rule-azure-services"

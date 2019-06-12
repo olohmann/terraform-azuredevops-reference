@@ -1,3 +1,8 @@
+variable "resource_group_name" {
+  default = ""
+  description = "Optional value to define a pre-set resource group for the deployment."
+}
+
 variable "prefix" {
   default = "contoso"
   description = "A prefix used for all resources in this example"

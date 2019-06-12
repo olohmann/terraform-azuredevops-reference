@@ -13,6 +13,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Updates to terraform sample deployment.
+
 ----------------
 ## [1.0.4] - 2019-06-11
 
