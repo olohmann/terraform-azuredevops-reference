@@ -14,6 +14,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 ----------------
+## [1.0.7] - 2019-06-12
+
+### Added
+
+### Removed
+
+### Changed
+
+- Fix __TF_backend_ vars for AzureDevOps capitalization
+
 ## [1.0.6] - 2019-06-12
 
 ### Added
