@@ -4,7 +4,7 @@ set -o nounset
 set -o pipefail
 
 # Script Versioning
-TF_SCRIPT_VERSION=1.0.6
+TF_SCRIPT_VERSION=1.0.8
 
 # Minimal Terraform Version for compatibility.
 TF_MIN_VERSION=0.12.1

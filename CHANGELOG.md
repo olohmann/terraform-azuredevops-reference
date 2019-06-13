@@ -14,6 +14,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 ----------------
+## [1.0.8] - 2019-06-12
+
+### Added
+
+### Removed
+
+### Changed
+
+- Bug: env vars in AzureDevOps not picked up
+
 ## [1.0.7] - 2019-06-12
 
 ### Added
