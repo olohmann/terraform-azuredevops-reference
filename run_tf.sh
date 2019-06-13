@@ -445,7 +445,8 @@ fi
 
 deployments=()
 while read -r deployment; do
-    deployments+=("${deployment}")
+    #deployments+=("${deployment}")
+    deployments=("${arr[@]}" "${deployment}")
 done <<< $(find . -type f -name '*.tf' | sed ${sed_flag} 's|/[^/]+$||' | sort | uniq)
 
 for deployment in "${deployments[@]}"
