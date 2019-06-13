@@ -4,10 +4,10 @@ set -o nounset
 set -o pipefail
 
 # Script Versioning
-TF_SCRIPT_VERSION=1.0.8
+TF_SCRIPT_VERSION=1.0.9
 
 # Minimal Terraform Version for compatibility.
-TF_MIN_VERSION=0.12.1
+TF_MIN_VERSION=0.12.2
 
 # Required external tools to be available on PATH.
 REQUIRED_TOOLS=("wget" "unzip" "az" "jq" "python" "openssl" "curl")
@@ -255,7 +255,7 @@ function ensure_terraform_backend() {
         if [[ "$entry" == "${CURRENT_IP}" ]]; then
             .log 4 "Skipping ${CURRENT_IP} (already configured)"
             KEEP_CURRENT_IP=true
-        else 
+        else
             az storage account network-rule add \
                 --resource-group "${RT_BACKEND_RESOURCE_GROUP_NAME}" \
                 --account-name "${RT_BACKEND_STORAGE_ACC_NAME}" \
