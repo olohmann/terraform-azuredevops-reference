@@ -6,7 +6,7 @@ This is an end-to-end sample of an opinionated Terraform wrapper that eases inte
 
 ```txt
 |-01-sample             An example terraform deployment.
-|-02-sample-post-deploy An example terraform deployment, that takes a dependency on 01-sample.
+|-02-sample-post-deploy An example terraform deployment, that takes an indirect dependency on 01-sample.
 .editorconfig           See https://editorconfig.org/
 CHANGELOG.md            Tracking the changelog.
 LICENSE                 License information on this project.
@@ -37,6 +37,27 @@ export TF_VAR_location="northeurope"
 Will pass an according variable to all terraform invocations.
 ```
 
+## Understanding (Sub-)Deployments
+
+Like in this example, `run_tf.sh` can be used to execute multiple deployments after each other. See `01-sample` and `02-sample-post-deploy`. This is sometimes favorable if you want to separate infrastructure with a different lifetimes (PaaS Storage vs. Kubernetes Cluster).
+
+That said, it is by no means necessary that you use the feature in your environment. You can also just use a single terraform deployment with sub-modules. `run_tf.sh` does not really care about that.
+
+## Adding New (Sub-)Deployments
+
+Deployments are detected automatically. That is, from the root folder where `run_tf.sh` is located, first level sub-folders with `*.tf` files are extracted. These sub-folders are sorted and executed after each other with terraform init, plan & apply.
+
+Simplified, your setup could look like this:
+```sh
++ 01-aks
+      - main.tf
++ 02-aks-post-deploy
+      - main.tf
+- run_tf.sh
+```
+
+`01-aks` will then be executed first and `02-aks-post-deploy` will follow.
+
 ## Terraform State
 
 Being opinionated, the script will automatically create an Azure Storage Account in predefined way to store the Terraform state securely and automation-friendly in an Azure Storage Account.
@@ -55,7 +76,7 @@ export __TF_backend_storage_container_name="tf-state"
 export __TF_backend_network_access_rules="23.92.28.29,126.20.2.0/24"
 ```
 
-> **Please Note:** If no customization is applied, sane defaults will be chosen.
+> **Please Note:** If no customization is applied, sane defaults will be chosen and a resource group and a storage account will be created accordingly.
 
 ## Integration into Azure DevOps
 
@@ -72,7 +93,7 @@ steps:
   inputs:
     azureSubscription: '<Azure Subscription Reference>'
     scriptPath: 'run_tf.sh'
-    arguments: '-v -f'
+    arguments: '-v -f -d'
     addSpnToEnvironment: true
 ```
 

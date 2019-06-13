@@ -4,7 +4,7 @@ set -o nounset
 set -o pipefail
 
 # Script Versioning
-TF_SCRIPT_VERSION=1.0.9
+TF_SCRIPT_VERSION=1.1.0
 
 # Minimal Terraform Version for compatibility.
 TF_MIN_VERSION=0.12.2
@@ -135,6 +135,19 @@ function get_abs_filename() {
 function set_tf_output() {
     # Transform terraform outputs to environment vars with __TF_ prefix, that will be transferred to dependant sub-deployments.
     eval $(${TERRAFORM_PATH} output -json | python -c 'import sys, json; tf_output = json.load(sys.stdin); sys.stdout.write(";".join(map(lambda key: "export TF_VAR_{key}=\"{value}\"".format(key=key, value=tf_output[key]["value"]), tf_output.keys())))')
+}
+
+# Automatically finds all subfolders to "run_tf.sh" that have *.tf files.
+function find_deployments() {
+    local os_version=$(get_os)
+    if [ "${os_version}" = "darwin" ]; then
+        echo -n $(find . -type f -name '*.tf' | sed -E 's|/[^/]+$||' | sed -E 's/(.*)/"\1"/' | sort | uniq)
+    elif [ "${os_version}" = "linux" ]; then
+        echo -n $(find . -type f -name '*.tf' | sed -r 's|/[^/]+$||' | sed -r 's/(.*)/"\1"/' | sort | uniq)
+    else
+        .log 2 "OS not supported (only darwin|linux)."
+        exit 1
+    fi
 }
 
 function usage() {
@@ -284,11 +297,10 @@ function ensure_terraform_backend() {
 function run_terraform() {
     local RT_VALIDATE_ONLY=$1
     local RT_ENV=$2
-
     local RT_MODULE=$3
 
     pushd $DIR
-    cd $(echo -n "${DIR}/${RT_MODULE}")
+    cd "$(echo -n "${DIR}/${RT_MODULE}")"
 
     # Clean existing state file that links to a backend. This is idempotent and will
     # be re-created. This, however, avoids problems if you deployments from a single
@@ -418,16 +430,31 @@ fi
 
 ensure_subription_context
 
-.log 6 "[==== 00 Ensure Terraform State Backend  ====]"
+.log 6 "[==== Ensure Terraform State Backend  ====]"
 ensure_terraform_backend
 
-.log 6 "[==== 01 Sample ====]"
-run_terraform ${v} ${e} "01-sample"
+# Go through all sub-dirs (=deployments) that have .tf files.
+os_version=$(get_os)
+if [ "${os_version}" = "darwin" ]; then
+    sed_flag="-E"
+elif [ "${os_version}" = "linux" ]; then
+    sed_flag="-r"
+else
+    .log 2 "Unsupported OS. Only darwin/linux supported."
+fi
 
-.log 6 "[==== 02 Sample Post Deploy ====]"
-run_terraform ${v} ${e} "02-sample-post-deploy"
+deployments=()
+while read -r deployment; do
+    deployments+=("${deployment}")
+done <<< $(find . -type f -name '*.tf' | sed ${sed_flag} 's|/[^/]+$||' | sort | uniq)
 
-.log 6 "[==== 03 Cleanup ====]"
+for deployment in "${deployments[@]}"
+do
+    .log 6 "[==== Running Deployment: ${deployment} ====]"
+    run_terraform ${v} ${e} "${deployment}"
+done
+
+.log 6 "[==== Cleanup ====]"
 .log 6 "Remove current IP from terraform state backend ip rules..."
 eval $(echo -n "${UNSET_BACKEND_DEPLOY_IP}")
 
