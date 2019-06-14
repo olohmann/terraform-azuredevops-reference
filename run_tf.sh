@@ -445,6 +445,7 @@ fi
 
 # Use find to traverse all direct sub-dirs that have .tf files (=deployments).
 # Store the modules in a temporary file which is used to turn the results into an array.
+declare -a deployments
 deployments=()
 deployments_temp_file=$(mktemp)
 find . -type f -name '*.tf' | sed ${sed_flag} 's|/[^/]+$||' | sort | uniq > ${deployments_temp_file}
