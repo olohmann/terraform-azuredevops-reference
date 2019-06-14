@@ -4,7 +4,7 @@ set -o pipefail
 set -o nounset
 
 # Script Versioning
-TF_SCRIPT_VERSION=1.1.1
+TF_SCRIPT_VERSION=1.1.2
 
 # Minimal Terraform Version for compatibility.
 TF_MIN_VERSION=0.12.2
@@ -451,7 +451,7 @@ fi
 declare -a deployments
 deployments=()
 deployments_temp_file=$(mktemp)
-find ${DIR} -type f -name '*.tf' | sed ${sed_flag} 's|/[^/]+$||' | sort | uniq > ${deployments_temp_file}
+find ${DIR} -maxdepth 2 -type f -name '*.tf' | sed ${sed_flag} 's|/[^/]+$||' | sort | uniq > ${deployments_temp_file}
 while read -r deployment; do
     deployments+=("${deployment}")
 done < ${deployments_temp_file}

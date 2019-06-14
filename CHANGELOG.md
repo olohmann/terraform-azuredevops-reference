@@ -14,7 +14,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 ----------------
-## [1.1.0] - 2019-06-14
+## [1.1.2] - 2019-06-14
+
+### Added
+
+### Removed
+
+### Changed
+
+- Auto-traverse max 1 level.
+
+
+## [1.1.1] - 2019-06-14
 
 ### Added
 
