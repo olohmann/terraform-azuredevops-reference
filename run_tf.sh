@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 set -o errexit
-set -o nounset
 set -o pipefail
 
 # Script Versioning
@@ -84,6 +83,8 @@ function check_tools() {
         if ! [[ -x "$(command -v ${cmd})" ]]; then
             .log 3 "${cmd} is required and was not found in PATH."
             errors_count=$((errors_count + 1))
+        else
+            .log 6 "Found '${cmd}' in path"
         fi
     done
 
@@ -187,7 +188,7 @@ function ensure_subription_context() {
     CURRENT_SUBSCRIPTION_ID=$(az account list --all --query "[?isDefault].id | [0]" | tr -d '"')
     CURRENT_SUBSCRIPTION_NAME=$(az account list --all --query "[?isDefault].name | [0]" | tr -d '"')
 
-    echo -e "${GREEN}[NOTE]${NC} Subscription Context: ${GREEN}${CURRENT_SUBSCRIPTION_NAME} (${CURRENT_SUBSCRIPTION_ID})${NC}"
+    echo -e "[info] Subscription Context: ${GREEN}${CURRENT_SUBSCRIPTION_NAME} (${CURRENT_SUBSCRIPTION_ID})${NC}"
     if [ "${f}" = true ]; then
         echo "Using ${CURRENT_SUBSCRIPTION_NAME} ($CURRENT_SUBSCRIPTION_ID)"
     else
@@ -393,23 +394,8 @@ fi
 fix_tf_var_az_devops_env_vars
 
 .log 6 "[==== Check Required Tools ====]"
+.log 6 "Found 'bash' (version: ${BASH_VERSION})"
 check_tools "${REQUIRED_TOOLS[@]}"
-
-# Determine if we are running under Azure DevOps or local
-servicePrincipalId=${servicePrincipalId:=""}
-if [ -z "${servicePrincipalId}" ]; then
-    .log 6 "[==== Using local user (az login) ====]"
-else
-    .log 6 "[==== Using Service Principal ====]"
-    export ARM_CLIENT_ID="${servicePrincipalId}"
-    export ARM_CLIENT_SECRET="${servicePrincipalKey}"
-    export ARM_SUBSCRIPTION_ID="$(az account list --all --query "[?isDefault].id | [0]" | tr -d '"')"
-    export ARM_TENANT_ID="$(az account list --all --query "[?isDefault].tenantId | [0]" | tr -d '"')"
-fi
-
-if [ "${p}" = true ]; then
-    env
-fi
 
 if [ "${d}" = true ]; then
     TERRAFORM_PATH=$(get_terraform)
@@ -428,6 +414,22 @@ else
     .log 6 "Found terraform ${TF_VERSION} (minimum: ${TF_MIN_VERSION})"
 fi
 
+# Determine if we are running under Azure DevOps or local
+servicePrincipalId=${servicePrincipalId:=""}
+if [ -z "${servicePrincipalId}" ]; then
+    .log 6 "[==== Using local user (az login) ====]"
+else
+    .log 6 "[==== Using Service Principal ====]"
+    export ARM_CLIENT_ID="${servicePrincipalId}"
+    export ARM_CLIENT_SECRET="${servicePrincipalKey}"
+    export ARM_SUBSCRIPTION_ID="$(az account list --all --query "[?isDefault].id | [0]" | tr -d '"')"
+    export ARM_TENANT_ID="$(az account list --all --query "[?isDefault].tenantId | [0]" | tr -d '"')"
+fi
+
+if [ "${p}" = true ]; then
+    env
+fi
+
 ensure_subription_context
 
 .log 6 "[==== Ensure Terraform State Backend  ====]"
@@ -436,6 +438,7 @@ ensure_terraform_backend
 # Need OS version to control BSD/Linux sed flags which are used in next steps.
 os_version=$(get_os)
 if [ "${os_version}" = "darwin" ]; then
+    set -o nounset
     sed_flag="-E"
 elif [ "${os_version}" = "linux" ]; then
     sed_flag="-r"
