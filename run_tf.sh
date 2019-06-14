@@ -450,7 +450,7 @@ deployments=()
 deployments_temp_file=$(mktemp)
 find . -type f -name '*.tf' | sed ${sed_flag} 's|/[^/]+$||' | sort | uniq > ${deployments_temp_file}
 while read -r deployment; do
-    deployments=("${deployments[@]}" "${deployment}")
+    deployments+=("${deployment}")
 done < ${deployments_temp_file}
 rm ${deployments_temp_file}
 
