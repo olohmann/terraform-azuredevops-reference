@@ -22,7 +22,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Fix auto-detection of deployments on Linux.
+
+## [1.1.0] - 2019-06-14
+
+### Added
+
 - Automatically detect (sub-)deployments. No need to change contents in the `run_tf.sh` file.
+
+### Removed
+
+### Changed
+
 - Changed min version to terraform 0.12.2.
 
 

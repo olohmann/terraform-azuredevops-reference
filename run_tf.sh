@@ -4,7 +4,7 @@ set -o nounset
 set -o pipefail
 
 # Script Versioning
-TF_SCRIPT_VERSION=1.1.0
+TF_SCRIPT_VERSION=1.1.1
 
 # Minimal Terraform Version for compatibility.
 TF_MIN_VERSION=0.12.2
@@ -433,7 +433,7 @@ ensure_subription_context
 .log 6 "[==== Ensure Terraform State Backend  ====]"
 ensure_terraform_backend
 
-# Go through all sub-dirs (=deployments) that have .tf files.
+# Need OS version to control BSD/Linux sed flags which are used in next steps.
 os_version=$(get_os)
 if [ "${os_version}" = "darwin" ]; then
     sed_flag="-E"
@@ -443,12 +443,17 @@ else
     .log 2 "Unsupported OS. Only darwin/linux supported."
 fi
 
+# Use find to traverse all direct sub-dirs that have .tf files (=deployments).
+# Store the modules in a temporary file which is used to turn the results into an array.
 deployments=()
+deployments_temp_file=$(mktemp)
+find . -type f -name '*.tf' | sed ${sed_flag} 's|/[^/]+$||' | sort | uniq > ${deployments_temp_file}
 while read -r deployment; do
-    #deployments+=("${deployment}")
     deployments=("${deployments[@]}" "${deployment}")
-done <<< $(find . -type f -name '*.tf' | sed ${sed_flag} 's|/[^/]+$||' | sort | uniq)
+done < ${deployments_temp_file}
+rm ${deployments_temp_file}
 
+# Run through the array of deployments and issue the terraform validate/plan/apply process.
 for deployment in "${deployments[@]}"
 do
     .log 6 "[==== Running Deployment: ${deployment} ====]"
