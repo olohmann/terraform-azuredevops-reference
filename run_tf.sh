@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 set -o errexit
 set -o pipefail
+set -o nounset
 
 # Script Versioning
 TF_SCRIPT_VERSION=1.1.1
@@ -301,7 +302,7 @@ function run_terraform() {
     local RT_MODULE=$3
 
     pushd $DIR
-    cd "$(echo -n "${DIR}/${RT_MODULE}")"
+    cd "$(echo -n "${RT_MODULE}")"
 
     # Clean existing state file that links to a backend. This is idempotent and will
     # be re-created. This, however, avoids problems if you deployments from a single
@@ -438,7 +439,6 @@ ensure_terraform_backend
 # Need OS version to control BSD/Linux sed flags which are used in next steps.
 os_version=$(get_os)
 if [ "${os_version}" = "darwin" ]; then
-    set -o nounset
     sed_flag="-E"
 elif [ "${os_version}" = "linux" ]; then
     sed_flag="-r"
@@ -451,13 +451,14 @@ fi
 declare -a deployments
 deployments=()
 deployments_temp_file=$(mktemp)
-find . -type f -name '*.tf' | sed ${sed_flag} 's|/[^/]+$||' | sort | uniq > ${deployments_temp_file}
+find ${DIR} -type f -name '*.tf' | sed ${sed_flag} 's|/[^/]+$||' | sort | uniq > ${deployments_temp_file}
 while read -r deployment; do
     deployments+=("${deployment}")
 done < ${deployments_temp_file}
 rm ${deployments_temp_file}
 
 # Run through the array of deployments and issue the terraform validate/plan/apply process.
+# TODO: Empty results.
 for deployment in "${deployments[@]}"
 do
     .log 6 "[==== Running Deployment: ${deployment} ====]"
