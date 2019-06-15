@@ -4,7 +4,7 @@ set -o pipefail
 set -o nounset
 
 # Script Versioning
-TF_SCRIPT_VERSION=1.1.2
+TF_SCRIPT_VERSION=1.1.3
 
 # Minimal Terraform Version for compatibility.
 TF_MIN_VERSION=0.12.2
@@ -308,6 +308,8 @@ function run_terraform() {
     # be re-created. This, however, avoids problems if you deployments from a single
     # source with different prefixes.
     rm -f .terraform/terraform.tfstate
+    rm -rf .terraform/terraform.tfstate.d/
+    rm -f .terraform/environment
 
     # Init with Backend config.
     eval $(printf "${TERRAFORM_PATH} init %s -no-color" "${BACKEND_CONFIG}")

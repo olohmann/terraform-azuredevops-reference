@@ -14,6 +14,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 ----------------
+## [1.1.3] - 2019-06-15
+
+### Added
+
+### Removed
+
+### Changed
+
+- Clean local workspace config before init.
+
+
 ## [1.1.2] - 2019-06-14
 
 ### Added
