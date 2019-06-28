@@ -4,7 +4,7 @@ set -o pipefail
 set -o nounset
 
 # Script Versioning
-TF_SCRIPT_VERSION=1.2.0
+TF_SCRIPT_VERSION=1.2.1
 
 # Minimal Terraform Version for compatibility.
 TF_MIN_VERSION=0.12.3
@@ -160,7 +160,7 @@ function verify_signature() {
     gpg -q --verify ${tf_shas_sig_file} ${tf_shas_file}
 
     .log 6 "Verifying terraform binary signature..."
-    shasum -q -a 256 -c ${tf_sha_file}
+    shasum -a 256 -c ${tf_sha_file}
     .log 6 "... success. Found valid terraform signature."
     popd
 }

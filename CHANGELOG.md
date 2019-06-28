@@ -15,6 +15,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ----------------
 
+## [1.2.1] - 2019-06-28
+
+### Added
+
+### Removed
+
+- `-q` param for shasum
+
+### Changed
+
 ## [1.2.0] - 2019-06-28
 
 ### Added
