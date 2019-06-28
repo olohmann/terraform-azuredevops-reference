@@ -4,13 +4,49 @@ set -o pipefail
 set -o nounset
 
 # Script Versioning
-TF_SCRIPT_VERSION=1.1.3
+TF_SCRIPT_VERSION=1.2.0
 
 # Minimal Terraform Version for compatibility.
-TF_MIN_VERSION=0.12.2
+TF_MIN_VERSION=0.12.3
+
+HASHICORP_GPG_SIG_FILE=$(mktemp)
+
+# See: https://www.hashicorp.com/security.html
+cat > $HASHICORP_GPG_SIG_FILE <<-EOF
+-----BEGIN PGP PUBLIC KEY BLOCK-----
+Version: GnuPG v1
+
+mQENBFMORM0BCADBRyKO1MhCirazOSVwcfTr1xUxjPvfxD3hjUwHtjsOy/bT6p9f
+W2mRPfwnq2JB5As+paL3UGDsSRDnK9KAxQb0NNF4+eVhr/EJ18s3wwXXDMjpIifq
+fIm2WyH3G+aRLTLPIpscUNKDyxFOUbsmgXAmJ46Re1fn8uKxKRHbfa39aeuEYWFA
+3drdL1WoUngvED7f+RnKBK2G6ZEpO+LDovQk19xGjiMTtPJrjMjZJ3QXqPvx5wca
+KSZLr4lMTuoTI/ZXyZy5bD4tShiZz6KcyX27cD70q2iRcEZ0poLKHyEIDAi3TM5k
+SwbbWBFd5RNPOR0qzrb/0p9ksKK48IIfH2FvABEBAAG0K0hhc2hpQ29ycCBTZWN1
+cml0eSA8c2VjdXJpdHlAaGFzaGljb3JwLmNvbT6JATgEEwECACIFAlMORM0CGwMG
+CwkIBwMCBhUIAgkKCwQWAgMBAh4BAheAAAoJEFGFLYc0j/xMyWIIAIPhcVqiQ59n
+Jc07gjUX0SWBJAxEG1lKxfzS4Xp+57h2xxTpdotGQ1fZwsihaIqow337YHQI3q0i
+SqV534Ms+j/tU7X8sq11xFJIeEVG8PASRCwmryUwghFKPlHETQ8jJ+Y8+1asRydi
+psP3B/5Mjhqv/uOK+Vy3zAyIpyDOMtIpOVfjSpCplVRdtSTFWBu9Em7j5I2HMn1w
+sJZnJgXKpybpibGiiTtmnFLOwibmprSu04rsnP4ncdC2XRD4wIjoyA+4PKgX3sCO
+klEzKryWYBmLkJOMDdo52LttP3279s7XrkLEE7ia0fXa2c12EQ0f0DQ1tGUvyVEW
+WmJVccm5bq25AQ0EUw5EzQEIANaPUY04/g7AmYkOMjaCZ6iTp9hB5Rsj/4ee/ln9
+wArzRO9+3eejLWh53FoN1rO+su7tiXJA5YAzVy6tuolrqjM8DBztPxdLBbEi4V+j
+2tK0dATdBQBHEh3OJApO2UBtcjaZBT31zrG9K55D+CrcgIVEHAKY8Cb4kLBkb5wM
+skn+DrASKU0BNIV1qRsxfiUdQHZfSqtp004nrql1lbFMLFEuiY8FZrkkQ9qduixo
+mTT6f34/oiY+Jam3zCK7RDN/OjuWheIPGj/Qbx9JuNiwgX6yRj7OE1tjUx6d8g9y
+0H1fmLJbb3WZZbuuGFnK6qrE3bGeY8+AWaJAZ37wpWh1p0cAEQEAAYkBHwQYAQIA
+CQUCUw5EzQIbDAAKCRBRhS2HNI/8TJntCAClU7TOO/X053eKF1jqNW4A1qpxctVc
+z8eTcY8Om5O4f6a/rfxfNFKn9Qyja/OG1xWNobETy7MiMXYjaa8uUx5iFy6kMVaP
+0BXJ59NLZjMARGw6lVTYDTIvzqqqwLxgliSDfSnqUhubGwvykANPO+93BBx89MRG
+unNoYGXtPlhNFrAsB1VR8+EyKLv2HQtGCPSFBhrjuzH3gxGibNDDdFQLxxuJWepJ
+EK1UbTS4ms0NgZ2Uknqn1WRU1Ki7rE4sTy68iZtWpKQXZEJa0IGnuI2sSINGcXCJ
+oEIgXTMyCILo34Fa/C6VCm2WBgz9zZO8/rHIiQm1J5zqz0DrDwKBUM9C
+=LYpS
+-----END PGP PUBLIC KEY BLOCK-----
+EOF
 
 # Required external tools to be available on PATH.
-REQUIRED_TOOLS=("wget" "unzip" "az" "jq" "python" "openssl" "curl")
+REQUIRED_TOOLS=("wget" "unzip" "az" "jq" "python" "openssl" "curl" "gpg" "shasum")
 
 declare TERRAFORM_PATH
 
@@ -110,6 +146,25 @@ function fix_tf_var_az_devops_env_vars() {
     eval $(python -c 'import os;import sys;sys.stdout.write("\n".join(map(lambda x: "export __TF_{key}={value}".format(key=x[5:].lower(),value=os.environ[x]), list(filter(lambda x: x.startswith("__TF_"), os.environ.keys())))))')
 }
 
+function verify_signature() {
+    local tf_path=$1
+    local tf_dir=$(dirname ${tf_path})
+    local tf_shas_file="${tf_path}_SHA256SUMS"
+    local tf_sha_file="${tf_path}_SHA256SUM"
+    local tf_shas_sig_file="${tf_path}_SHA256SUMS.sig"
+
+    pushd $DIR
+    cd ${tf_dir}
+    .log 6 "Verifying signature file with Hashicorp's GPG's PubKey..."
+    gpg -q --import ${HASHICORP_GPG_SIG_FILE}
+    gpg -q --verify ${tf_shas_sig_file} ${tf_shas_file}
+
+    .log 6 "Verifying terraform binary signature..."
+    shasum -q -a 256 -c ${tf_sha_file}
+    .log 6 "... success. Found valid terraform signature."
+    popd
+}
+
 function get_terraform() {
     .log 6 "Downloading terraform client (v${TF_MIN_VERSION})..."
     local os_version=$(get_os)
@@ -119,9 +174,17 @@ function get_terraform() {
     fi
 
     local terraform_download_url="https://releases.hashicorp.com/terraform/${TF_MIN_VERSION}/terraform_${TF_MIN_VERSION}_${os_version}_amd64.zip"
+    local terraform_sha_sums_download_url="https://releases.hashicorp.com/terraform/${TF_MIN_VERSION}/terraform_${TF_MIN_VERSION}_SHA256SUMS"
+    local terraform_sha_sums_sig_download_url="https://releases.hashicorp.com/terraform/${TF_MIN_VERSION}/terraform_${TF_MIN_VERSION}_SHA256SUMS.sig"
     local tmp_dir=$(mktemp -d)
-    wget -q -O ${tmp_dir}/terraform.zip ${terraform_download_url}
-    unzip -qq ${tmp_dir}/terraform.zip -d ${tmp_dir}
+    wget -q -O ${tmp_dir}/terraform_${TF_MIN_VERSION}_${os_version}_amd64.zip ${terraform_download_url}
+    wget -q -O ${tmp_dir}/terraform_SHA256SUMS ${terraform_sha_sums_download_url}
+    wget -q -O ${tmp_dir}/terraform_SHA256SUMS.sig ${terraform_sha_sums_sig_download_url}
+
+    # Extract the single SHASUM
+    cat ${tmp_dir}/terraform_SHA256SUMS | grep "terraform_${TF_MIN_VERSION}_${os_version}_amd64.zip" > ${tmp_dir}/terraform_SHA256SUM
+
+    unzip -qq ${tmp_dir}/terraform_${TF_MIN_VERSION}_${os_version}_amd64.zip -d ${tmp_dir}
     echo -n "${tmp_dir}/terraform"
 }
 
@@ -402,6 +465,7 @@ check_tools "${REQUIRED_TOOLS[@]}"
 
 if [ "${d}" = true ]; then
     TERRAFORM_PATH=$(get_terraform)
+    verify_signature "${TERRAFORM_PATH}"
 else
     TERRAFORM_PATH=$(which terraform | tr -d '\n')
 fi

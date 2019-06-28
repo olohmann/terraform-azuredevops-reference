@@ -14,6 +14,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 ----------------
+
+## [1.2.0] - 2019-06-28
+
+### Added
+
+- Added GPG signature validation for downloaded terraform binary.
+
+### Removed
+
+### Changed
+
 ## [1.1.3] - 2019-06-15
 
 ### Added
