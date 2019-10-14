@@ -24,6 +24,6 @@ variables:
   - name: deploy_skip_prod
     value: true
 stages:
-- template: pipeline-templates/e2e-stages-template.yaml 
+- template: pipeline-templates/stages-end-to-end-template.yaml 
   parameters:
     azureSubscription: 'oliverlo-internal-consumption'
