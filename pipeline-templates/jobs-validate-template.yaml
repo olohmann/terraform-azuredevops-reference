@@ -1,0 +1,23 @@
+parameters:
+  azureSubscription: ''
+  scriptPath: 'src/run_tf.sh'
+  artifactName: 'drop'
+
+jobs: 
+  - job: validate
+    displayName: Terraform Validation
+    pool:
+      vmImage: 'ubuntu-latest'
+    steps:
+    - script: echo This is pipeline $(System.DefinitionId)
+    - task: AzureCLI@1
+      displayName: 'Verify Terraform Sources'
+      inputs:
+        azureSubscription: ${{ parameters.azureSubscription }}
+        scriptPath: ${{ parameters.scriptPath }}
+        arguments: '-d -f -v'
+        addSpnToEnvironment: true
+    - bash: 'git clean -fdx'
+      displayName: 'Minimize Published Package'
+    - publish: $(System.DefaultWorkingDirectory)
+      artifact: ${{ parameters.artifactName }}

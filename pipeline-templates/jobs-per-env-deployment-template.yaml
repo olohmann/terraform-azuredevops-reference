@@ -1,0 +1,25 @@
+parameters:
+  azureSubscription: ''
+  environmentName: '' 
+  scriptPath: 'src/run_tf.sh'
+  artifactName: 'drop'
+
+jobs: 
+  - deployment: tf_deploy_${{ parameters.environmentName }}
+    displayName: Terraform Deploy ${{ parameters.environmentName }}
+    pool:
+      vmImage: 'ubuntu-latest'
+    environment: ${{ parameters.environmentName }}
+    strategy: 
+      runOnce:
+        deploy:
+          steps:
+          - download: current
+            artifact: ${{ parameters.artifactName }}
+          - task: AzureCLI@1
+            displayName: 'Verify Terraform Sources'
+            inputs:
+              azureSubscription: ${{ parameters.azureSubscription }}
+              scriptPath: $(Pipeline.Workspace)/${{ parameters.artifactName }}/${{ parameters.scriptPath }}
+              arguments: '-d -f -e ${{ parameters.environmentName }}'
+              addSpnToEnvironment: true

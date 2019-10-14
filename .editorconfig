@@ -11,3 +11,7 @@ insert_final_newline = true
 [*.tf]
 indent_style = space
 indent_size = 2
+
+[*.yaml]
+indent_style = space
+indent_size = 2

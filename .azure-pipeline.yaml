@@ -1,0 +1,29 @@
+# IMPORTANT:
+# To skip a stage, you can use the "Run Pipeline" dialog and pass a variable for each stage:
+# deploy_skip_dev = [true|false]
+# deploy_skip_qa = [true|false]
+# deploy_skip_prod = [true|false]
+# Alternatively, hard-code it in the variables block here. Note that, if the value is hard-coded
+# in YAML, you cannot override it during the "Run Pipeline" dialog.
+# variables:
+#   - name: deploy_skip_dev
+#     value: false
+#   - name: deploy_skip_qa
+#     value: true
+#   - name: deploy_skip_prod
+#     value: true
+
+name: IaC-Terraform-$(Date:yyyy-MM-dd)$(Rev:.r)
+trigger: none
+pr: none
+variables:
+  - name: deploy_skip_dev
+    value: false
+  - name: deploy_skip_qa
+    value: true
+  - name: deploy_skip_prod
+    value: true
+stages:
+- template: pipeline-templates/e2e-stages-template.yaml 
+  parameters:
+    azureSubscription: 'oliverlo-internal-consumption'

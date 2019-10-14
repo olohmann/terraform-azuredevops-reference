@@ -1,0 +1,44 @@
+parameters:
+  azureSubscription: ''
+  scriptPath: 'src/run_tf.sh'
+  artifactName: 'drop'
+
+stages:
+- stage: validate
+  displayName: Terraform Validation
+  jobs:
+    - template: jobs-validate-template.yaml
+      parameters:
+        azureSubscription: ${{ parameters.azureSubscription }}
+        scriptPath: ${{ parameters.scriptPath }}
+        artifactName: ${{ parameters.artifactName }}
+- stage: dev
+  condition: ne(variables['deploy_skip_dev'], 'true')
+  displayName: Terraform Deploy Dev 
+  jobs:
+    - template: jobs-per-env-deployment-template.yaml
+      parameters:
+        environmentName: 'dev'
+        azureSubscription: ${{ parameters.azureSubscription }}
+        scriptPath: ${{ parameters.scriptPath }}
+        artifactName: ${{ parameters.artifactName }}
+- stage: qa
+  condition: ne(variables['deploy_skip_qa'], 'true')
+  displayName: Terraform Deploy QA 
+  jobs:
+    - template: jobs-per-env-deployment-template.yaml
+      parameters:
+        environmentName: 'qa'
+        azureSubscription: ${{ parameters.azureSubscription }}
+        scriptPath: ${{ parameters.scriptPath }}
+        artifactName: ${{ parameters.artifactName }}
+- stage: prod
+  condition: ne(variables['deploy_skip_prod'], 'true')
+  displayName: Terraform Deploy Prod 
+  jobs:
+    - template: jobs-per-env-deployment-template.yaml
+      parameters:
+        environmentName: 'prod'
+        azureSubscription: ${{ parameters.azureSubscription }}
+        scriptPath: ${{ parameters.scriptPath }}
+        artifactName: ${{ parameters.artifactName }}
