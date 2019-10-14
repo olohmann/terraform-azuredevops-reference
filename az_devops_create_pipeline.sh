@@ -49,13 +49,15 @@ function usage() {
     echo "Options"
     echo "-t <pat_token>           Personal Access Token that should be used for creating the pipeline."
     echo "                         OR: AZURE_DEVOPS_CLI_PAT environment variable."
-    echo "-o <organization>        Azure DevOps org, e.g. https://dev.azure.com/contoso/"
+    echo "-o <organization>        Azure DevOps org, e.g. 'https://dev.azure.com/contoso/'"
     echo "                         OR: AZURE_DEVOPS_ORGANIZATION environment variable."
-    echo "-p <project_name>        Name of the Azure DevOps project, e.g. MyProject."
+    echo "-p <project_name>        Name of the Azure DevOps project, e.g. 'MyProject'."
     echo "                         OR: AZURE_DEVOPS_PROJECT environment variable."
-    echo "-g <git_repo_name>       Name of the Azure DevOps git repo, e.g. myrepo."
+    echo "-x <prefix>              Short 2-10 letters prefix for the project, e.g. 'proj'."
+    echo "                         OR: AZURE_DEVOPS_PREFIX environment variable."
+    echo "-g <git_repo_name>       Name of the Azure DevOps git repo, e.g. 'myrepo'."
     echo "                         OR: AZURE_DEVOPS_GIT_REPO environment variable."
-    echo "-n <pipeline_name>       Name of the pipeline to create, e.g. MyPipeline."
+    echo "-n <pipeline_name>       Name of the pipeline to create, e.g. 'MyPipeline'."
     echo "-f <yaml_file>           YAML definition location relative to the repository root, e.g. './pipeline.yaml'."
     echo "-h                       Help: Print this dialog and exit."
     echo ""
@@ -67,12 +69,13 @@ function usage() {
 t=${AZURE_DEVOPS_CLI_PAT:=""}
 o=${AZURE_DEVOPS_ORGANIZATION:=""}
 p=${AZURE_DEVOPS_PROJECT:=""}
+x=${AZURE_DEVOPS_PREFIX:=""}
 g=${AZURE_DEVOPS_GIT_REPO:=""}
 n=""
 f=""
 
-while getopts ":t:o:p:g:n:f:h" x; do
-    case "${x}" in
+while getopts ":t:o:p:x:g:n:f:h" z; do
+    case "${z}" in
     t)
         t=${OPTARG}
         ;;
@@ -81,6 +84,9 @@ while getopts ":t:o:p:g:n:f:h" x; do
         ;;
     p)
         p=${OPTARG}
+        ;;
+    x)
+        x=${OPTARG}
         ;;
     g)
         g=${OPTARG}
@@ -117,6 +123,11 @@ if [ -z "${p}" ]; then
     opt_errors_count=$((opt_errors_count + 1))
 fi
 
+if [ -z "${x}" ]; then
+    .log 3 "Prefix is missing."
+    opt_errors_count=$((opt_errors_count + 1))
+fi
+
 if [ -z "${g}" ]; then
     .log 3 "Git Repo name missing."
     opt_errors_count=$((opt_errors_count + 1))
@@ -142,6 +153,9 @@ check_tools "${REQUIRED_TOOLS[@]}"
 
 .log 6 "[==== Login to Azure DevOps ====]"
 echo ${t} | az devops login
+.log 6 "[==== Creating Pipeline ${n}... (first run is *not* triggered) ====]"
 az devops configure --defaults organization="${o}" project="${p}" --use-git-aliases true
-az pipelines create --name "${n}" --repository "${g}" --branch master --yml-path "${f}" --repository-type tfsgit
+az pipelines variable-group create --name "IaC_Shared_Variables" --variables TF_VAR_prefix=${x}
+az pipelines variable-group create --name "IaC_Terraform_Backend_Variables" --variables __TF_backend_resource_group_name= __TF_backend_location= __TF_backend_storage_account_name= __TF_backend_storage_container_name=
+az pipelines create --name "${n}" --repository "${g}" --branch master --yml-path "${f}" --repository-type tfsgit --skip-first-run
 .log 6 "[==== All done. ====]"

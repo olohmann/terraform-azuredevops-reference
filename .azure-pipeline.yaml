@@ -23,6 +23,8 @@ variables:
     value: true
   - name: deploy_skip_prod
     value: true
+  - group: IaC_Shared_Variables
+  - group: IaC_Terraform_Backend_Variables
 stages:
 - template: pipeline-templates/stages-end-to-end-template.yaml 
   parameters:

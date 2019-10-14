@@ -21,5 +21,11 @@ jobs:
             inputs:
               azureSubscription: ${{ parameters.azureSubscription }}
               scriptPath: $(Pipeline.Workspace)/${{ parameters.artifactName }}/${{ parameters.scriptPath }}
-              arguments: '-d -f -e ${{ parameters.environmentName }}'
+              arguments: '-d -f -e -p ${{ parameters.environmentName }}'
               addSpnToEnvironment: true
+            env:
+              TF_VAR_prefix=$(IaC_Shared_Variables.TF_VAR_prefix)
+              __TF_backend_resource_group_name=$(IaC_Terraform_Backend_Variables.__TF_backend_resource_group_name)
+              __TF_backend_location=$(IaC_Terraform_Backend_Variables.__TF_backend_location)
+              __TF_backend_storage_account_name=$(IaC_Terraform_Backend_Variables.__TF_backend_storage_account_name)
+              __TF_backend_storage_container_name=$(IaC_Terraform_Backend_Variables.__TF_backend_storage_container_name)
