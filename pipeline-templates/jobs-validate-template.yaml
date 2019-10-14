@@ -11,11 +11,11 @@ jobs:
     steps:
     - script: echo This is pipeline $(System.DefinitionId)
     - bash: |
-        echo "##vso[task.setvariable variable=TF_VAR_prefix]$(IaC_Shared_Variables.TF_VAR_prefix)"
-        echo "##vso[task.setvariable variable=__TF_backend_resource_group_name]$(IaC_Terraform_Backend_Variables.__TF_backend_resource_group_name)"
-        echo "##vso[task.setvariable variable=__TF_backend_location]$(IaC_Terraform_Backend_Variables.__TF_backend_location)"
-        echo "##vso[task.setvariable variable=__TF_backend_storage_account_name]$(IaC_Terraform_Backend_Variables.__TF_backend_storage_account_name)"
-        echo "##vso[task.setvariable variable=__TF_backend_storage_container_name]$(IaC_Terraform_Backend_Variables.__TF_backend_storage_container_name)"
+        echo "##vso[task.setvariable variable=TF_VAR_prefix]$(TF_VAR_prefix)"
+        echo "##vso[task.setvariable variable=__TF_backend_resource_group_name]$(__TF_backend_resource_group_name)"
+        echo "##vso[task.setvariable variable=__TF_backend_location]$(__TF_backend_location)"
+        echo "##vso[task.setvariable variable=__TF_backend_storage_account_name]$(__TF_backend_storage_account_name)"
+        echo "##vso[task.setvariable variable=__TF_backend_storage_container_name]$(__TF_backend_storage_container_name)"
     - task: AzureCLI@1
       displayName: 'Verify Terraform Sources'
       inputs:
