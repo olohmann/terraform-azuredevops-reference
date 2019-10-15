@@ -6,7 +6,7 @@ The centerpiece of the Terraform deployment process is a simple helper script `r
 
 ## Setting up an End-to-End Sample Pipeline in Azure DevOps
 
-1. Enable the Multi-Stage Deployment preview. [Enable Multi-Stage Preview](./doc/multi-stage-pipelines-preview.png)
+1. Enable the Multi-Stage Deployment preview. ![Enable Multi-Stage Preview](./doc/multi-stage-pipelines-preview.png)
 2. Create a PAT token with full access to pipelines. You can delete the PAT token after setting up the pipeline or set its expiry to one day.
 3. Install the Azure CLI azure-devops extension: `az extension install --name azure-devops`.
 4. Run the `az_devops_create_pipeline.sh` bash script and feed in the required parameters. Details below.
@@ -38,10 +38,10 @@ Options
 ### Outcome
 
 The result of the script is a new pipeline:
-[Pipeline](./doc/pipeline.png)
+![Pipeline](./doc/pipeline.png)
 
 ... which triggers the creation of the following environments:
-[Environments](./doc/environments.png)
+![Environments](./doc/environments.png)
 
 ## Governance and Security
 
@@ -56,4 +56,4 @@ In general, you should enable *Authorization* for Service Connections and Variab
 ### Multi-Stage Deployment with Manual Approvals
 
 Environments can be assigned a manual approval step. Just run the pipeline once and all environments will be created. Afterwards use the Environments section in Azure DevOps to enable via *Checks*.
-[Manual Approvals](./doc/environments-manual-approvals.png)
+![Manual Approvals](./doc/environments-manual-approvals.png)
