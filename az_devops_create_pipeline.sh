@@ -3,7 +3,7 @@ set -o errexit
 set -o pipefail
 set -o nounset
 
-SCRIPT_VERSION=0.1
+SCRIPT_VERSION=0.1.0
 
 # Required external tools to be available on PATH.
 REQUIRED_TOOLS=("az")
