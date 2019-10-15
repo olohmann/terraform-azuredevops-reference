@@ -28,4 +28,4 @@ variables:
 stages:
 - template: pipeline-templates/stages-end-to-end-template.yaml 
   parameters:
-    azureSubscription: 'oliverlo-internal-consumption'
+    azureSubscription: '$(Service_Connection_Name)'

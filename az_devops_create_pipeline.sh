@@ -59,6 +59,8 @@ function usage() {
     echo "                         OR: AZURE_DEVOPS_GIT_REPO environment variable."
     echo "-n <pipeline_name>       Name of the pipeline to create, e.g. 'MyPipeline'."
     echo "-f <yaml_file>           YAML definition location relative to the repository root, e.g. './pipeline.yaml'."
+    echo "-c <service_connection>  The service connection name that should be used."
+    echo "                         OR: AZURE_DEVOPS_SERVICE_CONNECTION_NAME environment variable."
     echo "-h                       Help: Print this dialog and exit."
     echo ""
     exit 1
@@ -71,10 +73,11 @@ o=${AZURE_DEVOPS_ORGANIZATION:=""}
 p=${AZURE_DEVOPS_PROJECT:=""}
 x=${TF_VAR_prefix:=""}
 g=${AZURE_DEVOPS_GIT_REPO:=""}
+c=${AZURE_DEVOPS_SERVICE_CONNECTION_NAME:=""}
 n=""
 f=""
 
-while getopts ":t:o:p:x:g:n:f:h" z; do
+while getopts ":t:o:p:x:g:n:f:c:h" z; do
     case "${z}" in
     t)
         t=${OPTARG}
@@ -96,6 +99,8 @@ while getopts ":t:o:p:x:g:n:f:h" z; do
         ;;
     f)
         f=${OPTARG}
+        ;;
+    c)  c=${OPTARG}
         ;;
     h)
         usage
@@ -143,6 +148,12 @@ if [ -z "${f}" ]; then
     opt_errors_count=$((opt_errors_count + 1))
 fi
 
+if [ -z "${c}" ]; then
+    .log 3 "Service Connection Name is missing."
+    opt_errors_count=$((opt_errors_count + 1))
+fi
+
+
 if [ ${opt_errors_count} -gt 0 ]; then
     usage
 fi
@@ -159,7 +170,7 @@ az devops configure --defaults organization="${o}" project="${p}" --use-git-alia
 # NOTE: There is a bug in the YAML variable group authorization path:
 # https://developercommunity.visualstudio.com/content/problem/729324/variables-group-in-yml-cannot-be-authorized-from-p.html
 # As there is no sensible information in the variable groups we can safely use '--authorize true' for the moment.
-az pipelines variable-group create --name "IaC_Shared_Variables" --authorize true --variables TF_VAR_prefix=${x}
+az pipelines variable-group create --name "IaC_Shared_Variables" --authorize true --variables TF_VAR_prefix=${x} Service_Connection_Name="${c}"
 az pipelines variable-group create --name "IaC_Terraform_Backend_Variables" --authorize true --variables __TF_backend_resource_group_name= __TF_backend_location= __TF_backend_storage_account_name= __TF_backend_storage_container_name= 
 az pipelines create --name "${n}" --repository "${g}" --branch master --yml-path "${f}" --repository-type tfsgit --skip-first-run
 .log 6 "[==== All done. ====]"
