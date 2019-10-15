@@ -54,7 +54,7 @@ function usage() {
     echo "-p <project_name>        Name of the Azure DevOps project, e.g. 'MyProject'."
     echo "                         OR: AZURE_DEVOPS_PROJECT environment variable."
     echo "-x <prefix>              Short 2-10 letters prefix for the project, e.g. 'proj'."
-    echo "                         OR: AZURE_DEVOPS_PREFIX environment variable."
+    echo "                         OR: TF_VAR_prefix environment variable."
     echo "-g <git_repo_name>       Name of the Azure DevOps git repo, e.g. 'myrepo'."
     echo "                         OR: AZURE_DEVOPS_GIT_REPO environment variable."
     echo "-n <pipeline_name>       Name of the pipeline to create, e.g. 'MyPipeline'."
@@ -69,7 +69,7 @@ function usage() {
 t=${AZURE_DEVOPS_CLI_PAT:=""}
 o=${AZURE_DEVOPS_ORGANIZATION:=""}
 p=${AZURE_DEVOPS_PROJECT:=""}
-x=${AZURE_DEVOPS_PREFIX:=""}
+x=${TF_VAR_prefix:=""}
 g=${AZURE_DEVOPS_GIT_REPO:=""}
 n=""
 f=""
@@ -155,7 +155,11 @@ check_tools "${REQUIRED_TOOLS[@]}"
 echo ${t} | az devops login
 .log 6 "[==== Creating Pipeline ${n}... (first run is *not* triggered) ====]"
 az devops configure --defaults organization="${o}" project="${p}" --use-git-aliases true
-az pipelines variable-group create --name "IaC_Shared_Variables" --variables TF_VAR_prefix=${x}
-az pipelines variable-group create --name "IaC_Terraform_Backend_Variables" --variables __TF_backend_resource_group_name= __TF_backend_location= __TF_backend_storage_account_name= __TF_backend_storage_container_name=
+
+# NOTE: There is a bug in the YAML variable group authorization path:
+# https://developercommunity.visualstudio.com/content/problem/729324/variables-group-in-yml-cannot-be-authorized-from-p.html
+# As there is no sensible information in the variable groups we can safely use '--authorize true' for the moment.
+az pipelines variable-group create --name "IaC_Shared_Variables" --authorize true --variables TF_VAR_prefix=${x}
+az pipelines variable-group create --name "IaC_Terraform_Backend_Variables" --authorize true --variables __TF_backend_resource_group_name= __TF_backend_location= __TF_backend_storage_account_name= __TF_backend_storage_container_name= 
 az pipelines create --name "${n}" --repository "${g}" --branch master --yml-path "${f}" --repository-type tfsgit --skip-first-run
 .log 6 "[==== All done. ====]"
